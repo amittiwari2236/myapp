@@ -1,13 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/instrument_service.dart';
 
+enum SelectedInstrument { tanpura, sarangi }
+
 class InstrumentState {
+  final SelectedInstrument selectedInstrument;
   final bool tanpuraIsPlaying;
   final double tanpuraTuning; // Hz
   final bool sarangiIsPlaying;
   final double sarangiTuning; // Hz
 
   InstrumentState({
+    this.selectedInstrument = SelectedInstrument.tanpura,
     this.tanpuraIsPlaying = false,
     this.tanpuraTuning = 130.81, // Default C3
     this.sarangiIsPlaying = false,
@@ -15,12 +19,14 @@ class InstrumentState {
   });
 
   InstrumentState copyWith({
+    SelectedInstrument? selectedInstrument,
     bool? tanpuraIsPlaying,
     double? tanpuraTuning,
     bool? sarangiIsPlaying,
     double? sarangiTuning,
   }) {
     return InstrumentState(
+      selectedInstrument: selectedInstrument ?? this.selectedInstrument,
       tanpuraIsPlaying: tanpuraIsPlaying ?? this.tanpuraIsPlaying,
       tanpuraTuning: tanpuraTuning ?? this.tanpuraTuning,
       sarangiIsPlaying: sarangiIsPlaying ?? this.sarangiIsPlaying,
@@ -31,6 +37,22 @@ class InstrumentState {
 
 class InstrumentNotifier extends StateNotifier<InstrumentState> {
   InstrumentNotifier() : super(InstrumentState());
+
+  void switchSelectedInstrument() {
+    state = state.copyWith(
+      selectedInstrument: state.selectedInstrument == SelectedInstrument.tanpura
+          ? SelectedInstrument.sarangi
+          : SelectedInstrument.tanpura
+    );
+  }
+
+  void toggleSelectedInstrumentPlayback() {
+    if (state.selectedInstrument == SelectedInstrument.tanpura) {
+      toggleTanpura();
+    } else {
+      toggleSarangi();
+    }
+  }
 
   void toggleTanpura() {
     if (state.tanpuraIsPlaying) {

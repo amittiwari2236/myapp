@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/tuner_provider.dart';
 import '../providers/mixer_provider.dart';
+import '../providers/instrument_provider.dart';
 import '../widgets/custom_tuner_gauge.dart';
 
 class TunerView extends ConsumerWidget {
@@ -11,6 +12,7 @@ class TunerView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tunerState = ref.watch(tunerProvider);
+    final instrumentState = ref.watch(instrumentProvider);
 
     return SingleChildScrollView(
       child: Padding(
@@ -113,35 +115,30 @@ class TunerView extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // Tanpura Button
-                Consumer(
-                  builder: (context, ref, child) {
-                    final mixerState = ref.watch(mixerProvider);
-                    return Column(
-                      children: [
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: mixerState.isDronePlaying ? const Color(0xFFFDECD4) : const Color(0xFFFDF9F2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.volume_up_outlined),
-                            onPressed: () {
-                              ref.read(mixerProvider.notifier).toggleDrone();
-                            },
-                            color: mixerState.isDronePlaying ? const Color(0xFFE86F1C) : const Color(0xFF4A4A4A),
-                            iconSize: 28,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text('Tanpura', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF2E3A2F))),
-                        const SizedBox(height: 4),
-                        const Text('Sa - Pa', style: TextStyle(color: Color(0xFF888888), fontSize: 11)),
-                      ],
-                    );
-                  }
+                // Instrument Selector Button
+                Column(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFDF9F2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: Icon(instrumentState.selectedInstrument == SelectedInstrument.tanpura ? Icons.music_note : Icons.straighten),
+                        onPressed: () {
+                          ref.read(instrumentProvider.notifier).switchSelectedInstrument();
+                        },
+                        color: const Color(0xFF4A4A4A),
+                        iconSize: 28,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(instrumentState.selectedInstrument == SelectedInstrument.tanpura ? 'Tanpura' : 'Sarangi', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF2E3A2F))),
+                    const SizedBox(height: 4),
+                    const Text('Select', style: TextStyle(color: Color(0xFF888888), fontSize: 11)),
+                  ],
                 ),
                 
                 // Play/Pause Button
@@ -154,10 +151,10 @@ class TunerView extends ConsumerWidget {
                   ),
                   child: IconButton(
                     onPressed: () {
-                      ref.read(tunerProvider.notifier).togglePlayback();
+                      ref.read(instrumentProvider.notifier).toggleSelectedInstrumentPlayback();
                     },
                     icon: Icon(
-                      tunerState.isPlaying ? Icons.pause : Icons.play_arrow,
+                      (instrumentState.selectedInstrument == SelectedInstrument.tanpura ? instrumentState.tanpuraIsPlaying : instrumentState.sarangiIsPlaying) ? Icons.pause : Icons.play_arrow,
                       color: Colors.white,
                     ),
                     iconSize: 36,
