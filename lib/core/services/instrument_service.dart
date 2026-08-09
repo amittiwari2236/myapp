@@ -35,23 +35,20 @@ class InstrumentService {
   }
 
   Future<void> setTanpuraTuning(double targetFrequency) async {
-    // Calculate the ratio between the target tuning and the base frequency
-    // E.g. if we want 136 Hz and base is 130.81, ratio = 1.039
-    // setPitch only affects pitch, not speed (requires just_audio pitch shifting, which is built-in)
+    // just_audio web doesn't support independent setPitch.
+    // However, setSpeed uses playbackRate which changes BOTH pitch and speed.
+    // For an infinite drone, changing speed is perfectly fine and sounds natural.
     double pitchRatio = targetFrequency / _tanpuraBaseFreq;
+    pitchRatio = pitchRatio.clamp(0.1, 4.0);
     
-    // just_audio's setPitch requires a value > 0. Usually safe range is 0.5 to 2.0.
-    // If they set a crazy tuning, clamp it to prevent crash.
-    pitchRatio = pitchRatio.clamp(0.5, 4.0);
-    
-    await _tanpuraPlayer.setPitch(pitchRatio);
+    await _tanpuraPlayer.setSpeed(pitchRatio);
   }
 
   Future<void> setSarangiTuning(double targetFrequency) async {
     double pitchRatio = targetFrequency / _sarangiBaseFreq;
-    pitchRatio = pitchRatio.clamp(0.5, 4.0);
+    pitchRatio = pitchRatio.clamp(0.1, 4.0);
     
-    await _sarangiPlayer.setPitch(pitchRatio);
+    await _sarangiPlayer.setSpeed(pitchRatio);
   }
 
   // Master volumes if needed
