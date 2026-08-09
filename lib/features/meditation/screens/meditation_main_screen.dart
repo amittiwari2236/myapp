@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import '../../../core/services/audio_service.dart';
 import '../../tuner/providers/mixer_provider.dart';
 import '../../tuner/providers/instrument_provider.dart';
+import '../../tuner/providers/tuner_provider.dart';
 import '../providers/meditation_provider.dart';
 
 class MeditationMainScreen extends ConsumerStatefulWidget {
