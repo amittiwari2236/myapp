@@ -314,9 +314,16 @@ class _MeditationMainScreenState extends ConsumerState<MeditationMainScreen> wit
             // Tanpura Card
             _buildInstrumentCard(
               title: 'Acoustic Tanpura',
-              isPlaying: instrumentState.tanpuraIsPlaying,
+              isPlaying: instrumentState.selectedInstrument == 'tanpura' && instrumentState.isPlaying,
               tuning: tunerState.targetFrequency,
-              onToggle: () => instrumentNotifier.toggleTanpura(),
+              onToggle: () {
+                if (instrumentState.selectedInstrument != 'tanpura') {
+                  instrumentNotifier.selectInstrument('tanpura');
+                  if (!instrumentState.isPlaying) instrumentNotifier.togglePlayback();
+                } else {
+                  instrumentNotifier.togglePlayback();
+                }
+              },
               onTuningChanged: (val) => tunerNotifier.updateTargetFrequency(val),
               theme: theme,
             ),
@@ -326,9 +333,16 @@ class _MeditationMainScreenState extends ConsumerState<MeditationMainScreen> wit
             // Sarangi Card
             _buildInstrumentCard(
               title: 'Bowed Sarangi',
-              isPlaying: instrumentState.sarangiIsPlaying,
+              isPlaying: instrumentState.selectedInstrument == 'sarangi' && instrumentState.isPlaying,
               tuning: tunerState.targetFrequency,
-              onToggle: () => instrumentNotifier.toggleSarangi(),
+              onToggle: () {
+                if (instrumentState.selectedInstrument != 'sarangi') {
+                  instrumentNotifier.selectInstrument('sarangi');
+                  if (!instrumentState.isPlaying) instrumentNotifier.togglePlayback();
+                } else {
+                  instrumentNotifier.togglePlayback();
+                }
+              },
               onTuningChanged: (val) => tunerNotifier.updateTargetFrequency(val),
               theme: theme,
             ),
