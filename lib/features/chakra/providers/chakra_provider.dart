@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/audio_service.dart';
 import '../../tuner/providers/tuner_provider.dart';
+import '../../tuner/providers/instrument_provider.dart';
 import '../../meditation/providers/meditation_provider.dart';
 
 class ChakraData {

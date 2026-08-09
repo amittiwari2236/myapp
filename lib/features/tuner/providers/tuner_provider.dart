@@ -57,8 +57,6 @@ class TunerNotifier extends StateNotifier<TunerState> {
     state = state.copyWith(targetFrequency: freq);
     audioService.updateFrequency(freq);
     droneService.updateDronePitch(freq, 130.81); // 130.81 Hz is the base C3 drone
-    instrumentService.setTanpuraTuning(freq);
-    instrumentService.setSarangiTuning(freq);
     ref.read(instrumentProvider.notifier).syncTuningFromTuner(freq);
   }
 
