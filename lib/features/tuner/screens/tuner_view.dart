@@ -126,7 +126,7 @@ class TunerView extends ConsumerWidget {
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        icon: Icon(instrumentState.selectedInstrument == SelectedInstrument.tanpura ? Icons.music_note : Icons.straighten),
+                        icon: Icon(instrumentState.selectedInstrument == 'tanpura' ? Icons.music_note : Icons.straighten),
                         onPressed: () {
                           ref.read(instrumentProvider.notifier).switchSelectedInstrument();
                         },
@@ -135,7 +135,7 @@ class TunerView extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(instrumentState.selectedInstrument == SelectedInstrument.tanpura ? 'Tanpura' : 'Sarangi', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF2E3A2F))),
+                    Text(instrumentState.selectedInstrument == 'tanpura' ? 'Tanpura' : 'Sarangi', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF2E3A2F))),
                     const SizedBox(height: 4),
                     const Text('Select', style: TextStyle(color: Color(0xFF888888), fontSize: 11)),
                   ],
@@ -151,10 +151,10 @@ class TunerView extends ConsumerWidget {
                   ),
                   child: IconButton(
                     onPressed: () {
-                      ref.read(instrumentProvider.notifier).toggleSelectedInstrumentPlayback();
+                      ref.read(instrumentProvider.notifier).togglePlayback();
                     },
                     icon: Icon(
-                      (instrumentState.selectedInstrument == SelectedInstrument.tanpura ? instrumentState.tanpuraIsPlaying : instrumentState.sarangiIsPlaying) ? Icons.pause : Icons.play_arrow,
+                      instrumentState.isPlaying ? Icons.pause : Icons.play_arrow,
                       color: Colors.white,
                     ),
                     iconSize: 36,

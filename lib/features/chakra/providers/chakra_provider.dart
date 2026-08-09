@@ -15,6 +15,7 @@ class ChakraData {
   final String location;
   final String affirmation;
   final String mantra;
+  final String instrumentId;
 
   const ChakraData({
     required this.index,
@@ -26,6 +27,7 @@ class ChakraData {
     required this.location,
     required this.affirmation,
     required this.mantra,
+    required this.instrumentId,
   });
 }
 
@@ -40,6 +42,7 @@ const List<ChakraData> allChakras = [
     location: 'Top of Head',
     affirmation: 'I understand.',
     mantra: 'OM',
+    instrumentId: 'crown',
   ),
   ChakraData(
     index: 1,
@@ -51,6 +54,7 @@ const List<ChakraData> allChakras = [
     location: 'Between Eyebrows',
     affirmation: 'I see.',
     mantra: 'SHAM',
+    instrumentId: 'third_eye',
   ),
   ChakraData(
     index: 2,
@@ -62,6 +66,7 @@ const List<ChakraData> allChakras = [
     location: 'Throat',
     affirmation: 'I speak.',
     mantra: 'HAM',
+    instrumentId: 'throat',
   ),
   ChakraData(
     index: 3,
@@ -73,6 +78,7 @@ const List<ChakraData> allChakras = [
     location: 'Center of Chest',
     affirmation: 'I love.',
     mantra: 'YAM',
+    instrumentId: 'heart',
   ),
   ChakraData(
     index: 4,
@@ -84,6 +90,7 @@ const List<ChakraData> allChakras = [
     location: 'Upper Abdomen',
     affirmation: 'I do.',
     mantra: 'RAM',
+    instrumentId: 'solar_plexus',
   ),
   ChakraData(
     index: 5,
@@ -95,6 +102,7 @@ const List<ChakraData> allChakras = [
     location: 'Lower Abdomen',
     affirmation: 'I feel.',
     mantra: 'VAM',
+    instrumentId: 'sacral',
   ),
   ChakraData(
     index: 6,
@@ -106,6 +114,7 @@ const List<ChakraData> allChakras = [
     location: 'Base of Spine',
     affirmation: 'I am.',
     mantra: 'LAM',
+    instrumentId: 'root',
   ),
 ];
 
@@ -143,16 +152,30 @@ class ChakraNotifier extends StateNotifier<ChakraState> {
     
     // Update global tuner frequency
     ref.read(tunerProvider.notifier).updateTargetFrequency(allChakras[index].frequency);
+    
+    // Switch the instrument to match this chakra
+    ref.read(instrumentProvider.notifier).selectInstrument(allChakras[index].instrumentId);
   }
 
   void toggleMeditation() {
+    final instrumentId = state.currentChakra.instrumentId;
+    
     if (state.isPlaying) {
-      audioService.pause();
+      audioService.pause(); // For generated pure tones if any
+      // Stop the instrument
+      if (ref.read(instrumentProvider).isPlaying) {
+        ref.read(instrumentProvider.notifier).togglePlayback();
+      }
       ref.read(meditationProvider.notifier).stopMeditation();
     } else {
       // Ensure target frequency is set to the current chakra
       ref.read(tunerProvider.notifier).updateTargetFrequency(state.currentChakra.frequency);
-      audioService.playFrequency(state.currentChakra.frequency);
+      
+      // Start the instrument automatically
+      if (!ref.read(instrumentProvider).isPlaying) {
+        ref.read(instrumentProvider.notifier).togglePlayback();
+      }
+      
       ref.read(meditationProvider.notifier).startMeditation();
     }
     state = state.copyWith(isPlaying: !state.isPlaying);
@@ -161,6 +184,9 @@ class ChakraNotifier extends StateNotifier<ChakraState> {
   void stop() {
     if (state.isPlaying) {
       audioService.pause();
+      if (ref.read(instrumentProvider).isPlaying) {
+        ref.read(instrumentProvider.notifier).pause();
+      }
       ref.read(meditationProvider.notifier).stopMeditation();
       state = state.copyWith(isPlaying: false);
     }

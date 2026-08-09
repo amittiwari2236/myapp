@@ -1,36 +1,29 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/instrument_service.dart';
 
-enum SelectedInstrument { tanpura, sarangi }
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/instrument_service.dart';
 
 class InstrumentState {
-  final SelectedInstrument selectedInstrument;
-  final bool tanpuraIsPlaying;
-  final double tanpuraTuning; // Hz
-  final bool sarangiIsPlaying;
-  final double sarangiTuning; // Hz
+  final String selectedInstrument;
+  final bool isPlaying;
+  final double tuning; // Hz
 
   InstrumentState({
-    this.selectedInstrument = SelectedInstrument.tanpura,
-    this.tanpuraIsPlaying = false,
-    this.tanpuraTuning = 130.81, // Default C3
-    this.sarangiIsPlaying = false,
-    this.sarangiTuning = 261.63, // Default C4
+    this.selectedInstrument = 'tanpura',
+    this.isPlaying = false,
+    this.tuning = 432.0,
   });
 
   InstrumentState copyWith({
-    SelectedInstrument? selectedInstrument,
-    bool? tanpuraIsPlaying,
-    double? tanpuraTuning,
-    bool? sarangiIsPlaying,
-    double? sarangiTuning,
+    String? selectedInstrument,
+    bool? isPlaying,
+    double? tuning,
   }) {
     return InstrumentState(
       selectedInstrument: selectedInstrument ?? this.selectedInstrument,
-      tanpuraIsPlaying: tanpuraIsPlaying ?? this.tanpuraIsPlaying,
-      tanpuraTuning: tanpuraTuning ?? this.tanpuraTuning,
-      sarangiIsPlaying: sarangiIsPlaying ?? this.sarangiIsPlaying,
-      sarangiTuning: sarangiTuning ?? this.sarangiTuning,
+      isPlaying: isPlaying ?? this.isPlaying,
+      tuning: tuning ?? this.tuning,
     );
   }
 }
@@ -38,51 +31,48 @@ class InstrumentState {
 class InstrumentNotifier extends StateNotifier<InstrumentState> {
   InstrumentNotifier() : super(InstrumentState());
 
+  void selectInstrument(String id) {
+    if (state.selectedInstrument == id) return;
+    
+    // Stop old instrument if it was playing
+    if (state.isPlaying) {
+      instrumentService.pauseInstrument(state.selectedInstrument);
+    }
+    
+    state = state.copyWith(selectedInstrument: id);
+    
+    // Sync the new instrument tuning
+    instrumentService.setInstrumentTuning(id, state.tuning);
+    
+    // Resume playback on new instrument if it was playing
+    if (state.isPlaying) {
+      instrumentService.playInstrument(id);
+    }
+  }
+
   void switchSelectedInstrument() {
-    state = state.copyWith(
-      selectedInstrument: state.selectedInstrument == SelectedInstrument.tanpura
-          ? SelectedInstrument.sarangi
-          : SelectedInstrument.tanpura
-    );
+    selectInstrument(state.selectedInstrument == 'tanpura' ? 'sarangi' : 'tanpura');
   }
 
-  void toggleSelectedInstrumentPlayback() {
-    if (state.selectedInstrument == SelectedInstrument.tanpura) {
-      toggleTanpura();
+  void togglePlayback() {
+    if (state.isPlaying) {
+      instrumentService.pauseInstrument(state.selectedInstrument);
     } else {
-      toggleSarangi();
+      instrumentService.playInstrument(state.selectedInstrument);
+    }
+    state = state.copyWith(isPlaying: !state.isPlaying);
+  }
+  
+  void pause() {
+    if (state.isPlaying) {
+      instrumentService.pauseInstrument(state.selectedInstrument);
+      state = state.copyWith(isPlaying: false);
     }
   }
 
-  void toggleTanpura() {
-    if (state.tanpuraIsPlaying) {
-      instrumentService.pauseTanpura();
-    } else {
-      instrumentService.playTanpura();
-    }
-    state = state.copyWith(tanpuraIsPlaying: !state.tanpuraIsPlaying);
-  }
-
-  void toggleSarangi() {
-    if (state.sarangiIsPlaying) {
-      instrumentService.pauseSarangi();
-    } else {
-      instrumentService.playSarangi();
-    }
-    state = state.copyWith(sarangiIsPlaying: !state.sarangiIsPlaying);
-  }
-
-  void setTanpuraTuning(double tuning) {
-    state = state.copyWith(tanpuraTuning: tuning);
-    instrumentService.setTanpuraTuning(tuning);
-  }
-
-  void setSarangiTuning(double tuning) {
-    state = state.copyWith(sarangiTuning: tuning);
-    instrumentService.setSarangiTuning(tuning);
-  }
   void syncTuningFromTuner(double tuning) {
-    state = state.copyWith(tanpuraTuning: tuning, sarangiTuning: tuning);
+    state = state.copyWith(tuning: tuning);
+    instrumentService.setInstrumentTuning(state.selectedInstrument, tuning);
   }
 }
 

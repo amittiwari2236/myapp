@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../navigation/main_navigation_screen.dart';
 import '../providers/chakra_provider.dart';
 import '../../meditation/providers/meditation_provider.dart';
+import '../../tuner/providers/tuner_provider.dart';
 
 class ChakraMainScreen extends ConsumerWidget {
   const ChakraMainScreen({super.key});
@@ -174,24 +175,46 @@ class ChakraMainScreen extends ConsumerWidget {
               
               const SizedBox(height: 16),
               
-              // Frequency Pill
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                decoration: BoxDecoration(
-                  color: chakraData.color.withOpacity(0.15), 
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${chakraData.frequency.toStringAsFixed(0)} Hz',
-                  style: TextStyle(
-                    color: chakraData.color,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
+              // Frequency Control
+              Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: chakraData.color.withOpacity(0.15), 
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${ref.watch(tunerProvider).targetFrequency.toStringAsFixed(1)} Hz',
+                      style: TextStyle(
+                        color: chakraData.color,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: chakraData.color,
+                      inactiveTrackColor: chakraData.color.withOpacity(0.2),
+                      thumbColor: chakraData.color,
+                      overlayColor: chakraData.color.withOpacity(0.1),
+                      trackHeight: 4.0,
+                    ),
+                    child: Slider(
+                      value: ref.watch(tunerProvider).targetFrequency.clamp(50.0, 1000.0),
+                      min: 50.0,
+                      max: 1000.0,
+                      onChanged: (val) {
+                        ref.read(tunerProvider.notifier).updateTargetFrequency(val);
+                      },
+                    ),
+                  ),
+                ],
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               
               // Recommended Mantra Card
               Container(
