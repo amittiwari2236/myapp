@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/services/audio_service.dart';
+import '../../../core/services/synth_service.dart';
 import '../../../core/services/pitch_detection_service.dart';
-import '../../../core/services/drone_service.dart';
-import '../../../core/services/instrument_service.dart';
 import 'instrument_provider.dart';
 
 class TunerState {
@@ -55,16 +53,16 @@ class TunerNotifier extends StateNotifier<TunerState> {
 
   void updateTargetFrequency(double freq) {
     state = state.copyWith(targetFrequency: freq);
-    audioService.updateFrequency(freq);
-    droneService.updateDronePitch(freq, 130.81); // 130.81 Hz is the base C3 drone
+    synthService.setInstrumentTuning('pure_tone', freq);
     ref.read(instrumentProvider.notifier).syncTuningFromTuner(freq);
   }
 
   void togglePlayback() {
     if (state.isPlaying) {
-      audioService.pause();
+      synthService.pauseInstrument('pure_tone');
     } else {
-      audioService.playFrequency(state.targetFrequency);
+      synthService.setInstrumentTuning('pure_tone', state.targetFrequency);
+      synthService.playInstrument('pure_tone');
     }
     state = state.copyWith(isPlaying: !state.isPlaying);
   }
@@ -79,7 +77,7 @@ class TunerNotifier extends StateNotifier<TunerState> {
 
   void stop() {
     if (state.isPlaying) {
-      audioService.pause();
+      synthService.pauseInstrument('pure_tone');
       state = state.copyWith(isPlaying: false);
     }
   }

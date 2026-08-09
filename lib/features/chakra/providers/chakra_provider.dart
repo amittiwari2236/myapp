@@ -162,7 +162,6 @@ class ChakraNotifier extends StateNotifier<ChakraState> {
     final instrumentId = state.currentChakra.instrumentId;
     
     if (state.isPlaying) {
-      audioService.pause(); // For generated pure tones if any
       // Stop the instrument
       if (ref.read(instrumentProvider).isPlaying) {
         ref.read(instrumentProvider.notifier).togglePlayback();
@@ -184,7 +183,6 @@ class ChakraNotifier extends StateNotifier<ChakraState> {
   
   void stop() {
     if (state.isPlaying) {
-      audioService.pause();
       if (ref.read(instrumentProvider).isPlaying) {
         ref.read(instrumentProvider.notifier).pause();
       }

@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/instrument_service.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/services/instrument_service.dart';
+import '../../../core/services/synth_service.dart';
 
 class InstrumentState {
   final String selectedInstrument;
@@ -36,17 +36,17 @@ class InstrumentNotifier extends StateNotifier<InstrumentState> {
     
     // Stop old instrument if it was playing
     if (state.isPlaying) {
-      instrumentService.pauseInstrument(state.selectedInstrument);
+      synthService.pauseInstrument(state.selectedInstrument);
     }
     
     state = state.copyWith(selectedInstrument: id);
     
     // Sync the new instrument tuning
-    instrumentService.setInstrumentTuning(id, state.tuning);
+    synthService.setInstrumentTuning(id, state.tuning);
     
     // Resume playback on new instrument if it was playing
     if (state.isPlaying) {
-      instrumentService.playInstrument(id);
+      synthService.playInstrument(id);
     }
   }
 
@@ -56,23 +56,23 @@ class InstrumentNotifier extends StateNotifier<InstrumentState> {
 
   void togglePlayback() {
     if (state.isPlaying) {
-      instrumentService.pauseInstrument(state.selectedInstrument);
+      synthService.pauseInstrument(state.selectedInstrument);
     } else {
-      instrumentService.playInstrument(state.selectedInstrument);
+      synthService.playInstrument(state.selectedInstrument);
     }
     state = state.copyWith(isPlaying: !state.isPlaying);
   }
   
   void pause() {
     if (state.isPlaying) {
-      instrumentService.pauseInstrument(state.selectedInstrument);
+      synthService.pauseInstrument(state.selectedInstrument);
       state = state.copyWith(isPlaying: false);
     }
   }
 
   void syncTuningFromTuner(double tuning) {
     state = state.copyWith(tuning: tuning);
-    instrumentService.setInstrumentTuning(state.selectedInstrument, tuning);
+    synthService.setInstrumentTuning(state.selectedInstrument, tuning);
   }
 }
 
