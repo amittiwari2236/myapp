@@ -81,6 +81,9 @@ class InstrumentNotifier extends StateNotifier<InstrumentState> {
     state = state.copyWith(sarangiTuning: tuning);
     instrumentService.setSarangiTuning(tuning);
   }
+  void syncTuningFromTuner(double tuning) {
+    state = state.copyWith(tanpuraTuning: tuning, sarangiTuning: tuning);
+  }
 }
 
 final instrumentProvider = StateNotifierProvider<InstrumentNotifier, InstrumentState>((ref) {

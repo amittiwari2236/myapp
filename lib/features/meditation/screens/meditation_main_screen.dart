@@ -297,6 +297,8 @@ class _MeditationMainScreenState extends ConsumerState<MeditationMainScreen> wit
   Widget _buildInstrumentsTab(ThemeData theme) {
     final instrumentState = ref.watch(instrumentProvider);
     final instrumentNotifier = ref.read(instrumentProvider.notifier);
+    final tunerState = ref.watch(tunerProvider);
+    final tunerNotifier = ref.read(tunerProvider.notifier);
 
     return SingleChildScrollView(
       child: Padding(
@@ -312,9 +314,9 @@ class _MeditationMainScreenState extends ConsumerState<MeditationMainScreen> wit
             _buildInstrumentCard(
               title: 'Acoustic Tanpura',
               isPlaying: instrumentState.tanpuraIsPlaying,
-              tuning: instrumentState.tanpuraTuning,
+              tuning: tunerState.targetFrequency,
               onToggle: () => instrumentNotifier.toggleTanpura(),
-              onTuningChanged: (val) => instrumentNotifier.setTanpuraTuning(val),
+              onTuningChanged: (val) => tunerNotifier.updateTargetFrequency(val),
               theme: theme,
             ),
             
@@ -324,9 +326,9 @@ class _MeditationMainScreenState extends ConsumerState<MeditationMainScreen> wit
             _buildInstrumentCard(
               title: 'Bowed Sarangi',
               isPlaying: instrumentState.sarangiIsPlaying,
-              tuning: instrumentState.sarangiTuning,
+              tuning: tunerState.targetFrequency,
               onToggle: () => instrumentNotifier.toggleSarangi(),
-              onTuningChanged: (val) => instrumentNotifier.setSarangiTuning(val),
+              onTuningChanged: (val) => tunerNotifier.updateTargetFrequency(val),
               theme: theme,
             ),
           ],

@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../core/services/pitch_detection_service.dart';
 import '../../../core/services/drone_service.dart';
+import '../../../core/services/instrument_service.dart';
+import 'instrument_provider.dart';
 
 class TunerState {
   final double targetFrequency;
@@ -32,7 +34,9 @@ class TunerState {
 }
 
 class TunerNotifier extends StateNotifier<TunerState> {
-  TunerNotifier() : super(TunerState(
+  final Ref ref;
+
+  TunerNotifier(this.ref) : super(TunerState(
     targetFrequency: 432.0, 
     detectedFrequency: -1.0, // -1 means no pitch detected
     isPlaying: false,
@@ -53,6 +57,9 @@ class TunerNotifier extends StateNotifier<TunerState> {
     state = state.copyWith(targetFrequency: freq);
     audioService.updateFrequency(freq);
     droneService.updateDronePitch(freq, 130.81); // 130.81 Hz is the base C3 drone
+    instrumentService.setTanpuraTuning(freq);
+    instrumentService.setSarangiTuning(freq);
+    ref.read(instrumentProvider.notifier).syncTuningFromTuner(freq);
   }
 
   void togglePlayback() {
@@ -87,5 +94,5 @@ class TunerNotifier extends StateNotifier<TunerState> {
 }
 
 final tunerProvider = StateNotifierProvider<TunerNotifier, TunerState>((ref) {
-  return TunerNotifier();
+  return TunerNotifier(ref);
 });
