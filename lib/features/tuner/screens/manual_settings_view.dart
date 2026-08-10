@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,7 +13,7 @@ class ManualSettingsView extends ConsumerWidget {
     final theme = Theme.of(context);
 
     // List of predefined frequencies
-    final presets = [396.0, 417.0, 432.0, 528.0, 639.0, 741.0, 852.0, 963.0];
+    final presets = [396.0, 417.0, 432.0, 440.0, 528.0, 639.0, 741.0, 852.0, 963.0];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -38,7 +39,7 @@ class ManualSettingsView extends ConsumerWidget {
               ),
               Expanded(
                 child: Slider(
-                  value: tunerState.targetFrequency,
+                  value: tunerState.targetFrequency.clamp(20.0, 2000.0),
                   min: 20,
                   max: 2000,
                   onChanged: (val) {
@@ -87,11 +88,20 @@ class ManualSettingsView extends ConsumerWidget {
           const Text('Pitch & Scale', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           
-          _buildDropdownRow('Root Note', 'C'),
+          _buildDropdownRow(
+            'Root Note',
+            tunerState.selectedScale,
+            scaleFrequencies.keys.toList(),
+            (val) {
+              if (val != null) {
+                ref.read(tunerProvider.notifier).updateScale(val);
+              }
+            },
+          ),
           const SizedBox(height: 12),
-          _buildDropdownRow('Scale', 'Natural Minor'),
+          _buildDropdownRow('Scale', 'Natural Minor', ['Natural Minor', 'Major', 'Harmonic Minor'], (val) {}),
           const SizedBox(height: 12),
-          _buildDropdownRow('Octave', '4 (Middle)'),
+          _buildDropdownRow('Octave', '4 (Middle)', ['3', '4 (Middle)', '5'], (val) {}),
           
           const SizedBox(height: 24),
           const Text('Pitch Shift', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -99,12 +109,10 @@ class ManualSettingsView extends ConsumerWidget {
             children: [
               Expanded(
                 child: Slider(
-                  value: 0, // This would require complex math to correctly shift the base frequency based on semitones
+                  value: 0, 
                   min: -24,
                   max: 24,
-                  onChanged: (val) {
-                    // Placeholder for actual pitch shift logic
-                  },
+                  onChanged: (val) {},
                 ),
               ),
             ],
@@ -140,23 +148,34 @@ class ManualSettingsView extends ConsumerWidget {
     );
   }
 
-  Widget _buildDropdownRow(String label, String value) {
+  Widget _buildDropdownRow(String label, String value, List<String> options, ValueChanged<String?> onChanged) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.withOpacity(0.3)),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Row(
-            children: [
-              Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
-              const SizedBox(width: 8),
-              const Icon(Icons.keyboard_arrow_down, size: 16),
-            ],
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              icon: const Padding(
+                padding: EdgeInsets.only(left: 8.0),
+                child: Icon(Icons.keyboard_arrow_down, size: 16),
+              ),
+              isDense: true,
+              style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black, fontSize: 14),
+              onChanged: onChanged,
+              items: options.map<DropdownMenuItem<String>>((String val) {
+                return DropdownMenuItem<String>(
+                  value: val,
+                  child: Text(val),
+                );
+              }).toList(),
+            ),
           ),
         )
       ],

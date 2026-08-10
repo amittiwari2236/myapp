@@ -5,6 +5,7 @@ import '../providers/tuner_provider.dart';
 import '../providers/mixer_provider.dart';
 import '../providers/instrument_provider.dart';
 import '../widgets/custom_tuner_gauge.dart';
+import '../../../core/services/instrument_service.dart';
 
 class TunerView extends ConsumerWidget {
   const TunerView({super.key});
@@ -125,17 +126,27 @@ class TunerView extends ConsumerWidget {
                         color: Color(0xFFFDF9F2),
                         shape: BoxShape.circle,
                       ),
-                      child: IconButton(
-                        icon: Icon(instrumentState.selectedInstrument == 'tanpura' ? Icons.music_note : Icons.straighten),
-                        onPressed: () {
-                          ref.read(instrumentProvider.notifier).switchSelectedInstrument();
+                      child: PopupMenuButton<String>(
+                        icon: const Icon(Icons.music_note, color: Color(0xFF4A4A4A), size: 28),
+                        onSelected: (String id) {
+                          ref.read(instrumentProvider.notifier).selectInstrument(id);
                         },
-                        color: const Color(0xFF4A4A4A),
-                        iconSize: 28,
+                        itemBuilder: (BuildContext context) {
+                          return instrumentService.instrumentNames.entries.map((entry) {
+                            return PopupMenuItem<String>(
+                              value: entry.key,
+                              child: Text(entry.value),
+                            );
+                          }).toList();
+                        },
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(instrumentState.selectedInstrument == 'tanpura' ? 'Tanpura' : 'Sarangi', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF2E3A2F))),
+                    Text(
+                      instrumentService.instrumentNames[instrumentState.selectedInstrument] ?? 'Instrument', 
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF2E3A2F)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 4),
                     const Text('Select', style: TextStyle(color: Color(0xFF888888), fontSize: 11)),
                   ],

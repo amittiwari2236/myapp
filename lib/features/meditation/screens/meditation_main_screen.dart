@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math' as math;
 
 import '../../../core/services/audio_service.dart';
+import '../../../core/services/instrument_service.dart';
 import '../../tuner/providers/mixer_provider.dart';
 import '../../tuner/providers/instrument_provider.dart';
 import '../../tuner/providers/tuner_provider.dart';
@@ -301,6 +302,9 @@ class _MeditationMainScreenState extends ConsumerState<MeditationMainScreen> wit
     final tunerState = ref.watch(tunerProvider);
     final tunerNotifier = ref.read(tunerProvider.notifier);
 
+    // Get instruments from the service
+    final instruments = instrumentService.instrumentNames.entries.toList();
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -308,44 +312,31 @@ class _MeditationMainScreenState extends ConsumerState<MeditationMainScreen> wit
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            const Text('Realistic Instruments', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('Realistic Instruments & Drones', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             
-            // Tanpura Card
-            _buildInstrumentCard(
-              title: 'Acoustic Tanpura',
-              isPlaying: instrumentState.selectedInstrument == 'tanpura' && instrumentState.isPlaying,
-              tuning: tunerState.targetFrequency,
-              onToggle: () {
-                if (instrumentState.selectedInstrument != 'tanpura') {
-                  instrumentNotifier.selectInstrument('tanpura');
-                  if (!instrumentState.isPlaying) instrumentNotifier.togglePlayback();
-                } else {
-                  instrumentNotifier.togglePlayback();
-                }
-              },
-              onTuningChanged: (val) => tunerNotifier.updateTargetFrequency(val),
-              theme: theme,
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Sarangi Card
-            _buildInstrumentCard(
-              title: 'Bowed Sarangi',
-              isPlaying: instrumentState.selectedInstrument == 'sarangi' && instrumentState.isPlaying,
-              tuning: tunerState.targetFrequency,
-              onToggle: () {
-                if (instrumentState.selectedInstrument != 'sarangi') {
-                  instrumentNotifier.selectInstrument('sarangi');
-                  if (!instrumentState.isPlaying) instrumentNotifier.togglePlayback();
-                } else {
-                  instrumentNotifier.togglePlayback();
-                }
-              },
-              onTuningChanged: (val) => tunerNotifier.updateTargetFrequency(val),
-              theme: theme,
-            ),
+            ...instruments.map((entry) {
+              final id = entry.key;
+              final name = entry.value;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: _buildInstrumentCard(
+                  title: name,
+                  isPlaying: instrumentState.selectedInstrument == id && instrumentState.isPlaying,
+                  tuning: tunerState.targetFrequency,
+                  onToggle: () {
+                    if (instrumentState.selectedInstrument != id) {
+                      instrumentNotifier.selectInstrument(id);
+                      if (!instrumentState.isPlaying) instrumentNotifier.togglePlayback();
+                    } else {
+                      instrumentNotifier.togglePlayback();
+                    }
+                  },
+                  onTuningChanged: (val) => tunerNotifier.updateTargetFrequency(val),
+                  theme: theme,
+                ),
+              );
+            }).toList(),
           ],
         ),
       ),

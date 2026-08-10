@@ -1,8 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/services/instrument_service.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/services/synth_service.dart';
+import '../../../core/services/instrument_service.dart';
 
 class InstrumentState {
   final String selectedInstrument;
@@ -10,9 +8,9 @@ class InstrumentState {
   final double tuning; // Hz
 
   InstrumentState({
-    this.selectedInstrument = 'tanpura',
+    this.selectedInstrument = 'male_tanpura',
     this.isPlaying = false,
-    this.tuning = 432.0,
+    this.tuning = 440.0,
   });
 
   InstrumentState copyWith({
@@ -36,43 +34,40 @@ class InstrumentNotifier extends StateNotifier<InstrumentState> {
     
     // Stop old instrument if it was playing
     if (state.isPlaying) {
-      synthService.pauseInstrument(state.selectedInstrument);
+      instrumentService.pauseInstrument(state.selectedInstrument);
     }
     
     state = state.copyWith(selectedInstrument: id);
     
     // Sync the new instrument tuning
-    synthService.setInstrumentTuning(id, state.tuning);
+    instrumentService.setInstrumentTuning(id, state.tuning);
     
     // Resume playback on new instrument if it was playing
     if (state.isPlaying) {
-      synthService.playInstrument(id);
+      instrumentService.playInstrument(id);
     }
-  }
-
-  void switchSelectedInstrument() {
-    selectInstrument(state.selectedInstrument == 'tanpura' ? 'sarangi' : 'tanpura');
   }
 
   void togglePlayback() {
     if (state.isPlaying) {
-      synthService.pauseInstrument(state.selectedInstrument);
+      instrumentService.pauseInstrument(state.selectedInstrument);
     } else {
-      synthService.playInstrument(state.selectedInstrument);
+      instrumentService.setInstrumentTuning(state.selectedInstrument, state.tuning);
+      instrumentService.playInstrument(state.selectedInstrument);
     }
     state = state.copyWith(isPlaying: !state.isPlaying);
   }
   
   void pause() {
     if (state.isPlaying) {
-      synthService.pauseInstrument(state.selectedInstrument);
+      instrumentService.pauseInstrument(state.selectedInstrument);
       state = state.copyWith(isPlaying: false);
     }
   }
 
   void syncTuningFromTuner(double tuning) {
     state = state.copyWith(tuning: tuning);
-    synthService.setInstrumentTuning(state.selectedInstrument, tuning);
+    instrumentService.setInstrumentTuning(state.selectedInstrument, tuning);
   }
 }
 
