@@ -2,7 +2,6 @@
 import 'package:just_audio/just_audio.dart';
 
 class InstrumentService {
-  final Map<String, AudioPlayer> _players = {};
   
   final Map<String, double> _baseFreqs = {
     'male_tanpura': 130.81,
@@ -76,45 +75,47 @@ class InstrumentService {
     'ambient_drone': 'Ambient Meditation Drone',
   };
 
+  final AudioPlayer _player = AudioPlayer();
+  String? _currentId;
+  
   Future<void> init() async {
-    for (String key in _assetPaths.keys) {
-      _players[key] = AudioPlayer();
-      await _players[key]!.setAsset(_assetPaths[key]!);
-      // Ensure seamless continuous looping
-      await _players[key]!.setLoopMode(LoopMode.one);
-    }
+    await _player.setLoopMode(LoopMode.one);
   }
 
   Future<void> playInstrument(String id) async {
-    await _players[id]?.play();
+    if (_currentId != id) {
+      await _player.setAsset(_assetPaths[id]!);
+      _currentId = id;
+    }
+    await _player.play();
   }
 
   Future<void> pauseInstrument(String id) async {
-    await _players[id]?.pause();
+    if (_currentId == id) {
+      await _player.pause();
+    }
   }
 
   Future<void> setInstrumentTuning(String id, double targetFrequency) async {
-    if (!_baseFreqs.containsKey(id) || !_players.containsKey(id)) return;
+    if (!_baseFreqs.containsKey(id)) return;
     
     // just_audio setSpeed controls playbackRate, changing both pitch and speed.
-    // This allows smooth pitch shifting without gaps or restarts.
     double pitchRatio = targetFrequency / _baseFreqs[id]!;
-    
-    // Clamp to valid playback rate ranges to avoid crashes (0.1 to 4.0 is safe for just_audio)
     pitchRatio = pitchRatio.clamp(0.1, 4.0);
     
-    await _players[id]?.setSpeed(pitchRatio);
+    if (_currentId == id) {
+      await _player.setSpeed(pitchRatio);
+    }
   }
 
   Future<void> setInstrumentVolume(String id, double volume) async {
-    await _players[id]?.setVolume(volume);
+    if (_currentId == id) {
+      await _player.setVolume(volume);
+    }
   }
 
   Future<void> dispose() async {
-    for (var player in _players.values) {
-      await player.dispose();
-    }
-    _players.clear();
+    await _player.dispose();
   }
 }
 
