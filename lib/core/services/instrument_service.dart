@@ -1,6 +1,7 @@
 
 import 'package:just_audio/just_audio.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import 'package:flutter/foundation.dart';
 
 class InstrumentService {
   final Map<String, double> _baseFreqs = {
@@ -78,6 +79,7 @@ class InstrumentService {
   final AudioPlayer _player = AudioPlayer();
   final YoutubeExplode _yt = YoutubeExplode();
   String? _currentId;
+  String? _currentLoadedUrl;
   Map<String, String> _customLinks = {};
   
   Future<void> init() async {
@@ -86,39 +88,57 @@ class InstrumentService {
 
   void updateCustomLinks(Map<String, String> links) {
     _customLinks = links;
-    // If the currently playing instrument's link was updated, we might need to reload it,
-    // but for now we'll just wait for the next play call.
   }
 
   Future<void> playInstrument(String id) async {
-    if (_currentId != id) {
-      String? customLink = _customLinks[id];
-      String urlToPlay = _assetPaths[id]!;
+    String? customLink = _customLinks[id];
+    String targetUrl = (customLink != null && customLink.trim().isNotEmpty) ? customLink.trim() : _assetPaths[id]!;
+
+    if (_currentId != id || _currentLoadedUrl != targetUrl) {
+      String? urlToPlay;
       
-      if (customLink != null && customLink.isNotEmpty) {
+      if (customLink != null && customLink.trim().isNotEmpty) {
         if (customLink.contains('youtube.com') || customLink.contains('youtu.be')) {
           try {
             var videoId = VideoId(customLink);
             var manifest = await _yt.videos.streamsClient.getManifest(videoId);
             var audioStream = manifest.audioOnly.withHighestBitrate();
             urlToPlay = audioStream.url.toString();
+            
+            // Attempt to bypass Web CORS for the raw media stream
+            if (kIsWeb) {
+               urlToPlay = 'https://corsproxy.io/?' + Uri.encodeComponent(urlToPlay);
+            }
           } catch(e) {
              print("Error extracting YT link: $e");
+             // Never fall back to default if a custom link was provided but failed
+             urlToPlay = null; 
           }
         } else {
           urlToPlay = customLink; // direct remote URL
         }
+      } else {
+        urlToPlay = _assetPaths[id];
       }
 
-      if (urlToPlay.startsWith('http')) {
-        await _player.setAudioSource(AudioSource.uri(Uri.parse(urlToPlay)));
+      if (urlToPlay != null) {
+        if (urlToPlay.startsWith('http')) {
+          await _player.setAudioSource(AudioSource.uri(Uri.parse(urlToPlay)));
+        } else {
+          await _player.setAsset(urlToPlay);
+        }
       } else {
-        await _player.setAsset(urlToPlay);
+        // If extraction failed or URL is null, stop any playing audio.
+        await _player.stop();
       }
       
       _currentId = id;
+      _currentLoadedUrl = targetUrl;
     }
-    await _player.play();
+    
+    if (_currentLoadedUrl != null) {
+      await _player.play();
+    }
   }
 
   Future<void> pauseInstrument(String id) async {
