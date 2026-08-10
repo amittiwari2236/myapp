@@ -1,8 +1,8 @@
 
 import 'package:just_audio/just_audio.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 class InstrumentService {
-  
   final Map<String, double> _baseFreqs = {
     'male_tanpura': 130.81,
     'female_tanpura': 261.63,
@@ -76,15 +76,46 @@ class InstrumentService {
   };
 
   final AudioPlayer _player = AudioPlayer();
+  final YoutubeExplode _yt = YoutubeExplode();
   String? _currentId;
+  Map<String, String> _customLinks = {};
   
   Future<void> init() async {
     await _player.setLoopMode(LoopMode.one);
   }
 
+  void updateCustomLinks(Map<String, String> links) {
+    _customLinks = links;
+    // If the currently playing instrument's link was updated, we might need to reload it,
+    // but for now we'll just wait for the next play call.
+  }
+
   Future<void> playInstrument(String id) async {
     if (_currentId != id) {
-      await _player.setAsset(_assetPaths[id]!);
+      String? customLink = _customLinks[id];
+      String urlToPlay = _assetPaths[id]!;
+      
+      if (customLink != null && customLink.isNotEmpty) {
+        if (customLink.contains('youtube.com') || customLink.contains('youtu.be')) {
+          try {
+            var videoId = VideoId(customLink);
+            var manifest = await _yt.videos.streamsClient.getManifest(videoId);
+            var audioStream = manifest.audioOnly.withHighestBitrate();
+            urlToPlay = audioStream.url.toString();
+          } catch(e) {
+             print("Error extracting YT link: $e");
+          }
+        } else {
+          urlToPlay = customLink; // direct remote URL
+        }
+      }
+
+      if (urlToPlay.startsWith('http')) {
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(urlToPlay)));
+      } else {
+        await _player.setAsset(urlToPlay);
+      }
+      
       _currentId = id;
     }
     await _player.play();
@@ -115,6 +146,7 @@ class InstrumentService {
   }
 
   Future<void> dispose() async {
+    _yt.close();
     await _player.dispose();
   }
 }

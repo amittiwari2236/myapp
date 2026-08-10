@@ -1,8 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'tuner_view.dart';
 import 'manual_settings_view.dart';
+import '../../admin/screens/admin_panel_screen.dart';
 
 class TunerMainScreen extends ConsumerStatefulWidget {
   const TunerMainScreen({super.key});
@@ -48,7 +50,12 @@ class _TunerMainScreenState extends ConsumerState<TunerMainScreen> with SingleTi
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: Colors.black87),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminPanelScreen()),
+              );
+            },
           )
         ],
         bottom: TabBar(
